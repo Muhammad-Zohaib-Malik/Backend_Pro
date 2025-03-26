@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
+import { Subscription } from "../models/subcription.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -131,7 +132,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 export const LogoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { refreshToken: undefined } },
+    { $unset: { refreshToken: 1 } },
     { new: true }
   );
 
@@ -288,4 +289,41 @@ export const updateUserCoverImage = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Cover Image Updated Successfully"));
+});
+
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username?.trim()) {
+    throw new ApiError(400, "username is missing");
+  }
+
+  const user = await User.findOne({ username: username.toLowerCase() }).select(
+    "-password" // Exclude sensitive fields
+  );
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const subscribersCount = await Subscription.countDocuments({
+    channel: user._id,
+  });
+
+  // Count number of channels the user is subscribed to
+  const channelSubscribedToCount = await Subscription.countDocuments({
+    subscriber: user._id,
+  });
+
+  // Check if the logged-in user is subscribed to this channel
+  const isSubscribed = await Subscription.exists({
+    channel: user._id,
+    subscriber: req.user._id, // Assuming `req.user` contains the authenticated user
+  });
+
+  res.status(200).json({
+    user,
+    subscribersCount,
+    channelSubscribedToCount,
+    isSubscribed: !!isSubscribed, // Convert to boolean
+  });
 });
