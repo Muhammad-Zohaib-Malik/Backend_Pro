@@ -7,20 +7,39 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath, options = {}) => {
   try {
     if (!localFilePath) return null;
+    
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      folder: "Backend",
+      folder: options.folder || "Backend", // Default folder is "Backend"
     });
-    console.log("file is uploaded on cloudinary", response.url);
+
+    console.log("File uploaded to Cloudinary:", response.url);
 
     fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
     fs.unlinkSync(localFilePath);
     return null;
+  }
+};
+
+
+export const deleteImageFromCloudinary = async (publicId) => {
+  try {
+    if (!publicId) {
+      console.error('Public ID is required for deletion.');
+      return null;
+    }
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log('Image deleted successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error deleting image from Cloudinary:', error);
+    throw error;
   }
 };
 
