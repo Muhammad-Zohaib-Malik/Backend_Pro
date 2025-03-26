@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { Subscription } from "../models/subcription.model.js";
+import { Subscription } from "../models/subscription.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -299,7 +299,7 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({ username: username.toLowerCase() }).select(
-    "-password" // Exclude sensitive fields
+    "-password" 
   );
 
   if (!user) {
@@ -317,7 +317,7 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
   // Check if the logged-in user is subscribed to this channel
   const isSubscribed = await Subscription.exists({
     channel: user._id,
-    subscriber: req.user._id, // Assuming `req.user` contains the authenticated user
+    subscriber: req.user._id,
   });
 
   res.status(200).json({
