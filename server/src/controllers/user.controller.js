@@ -295,35 +295,23 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
   if (!username?.trim()) {
-    throw new ApiError(400, "username is missing");
+    throw new ApiError(400, "Username is missing");
   }
 
-  const user = await User.findOne({ username: username.toLowerCase() }).select(
-    "-password" 
-  );
+  const user = await User.findOne({ username: username.toLowerCase() }).select("-password");
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  const subscribersCount = await Subscription.countDocuments({
-    channel: user._id,
-  });
 
-  // Count number of channels the user is subscribed to
-  const channelSubscribedToCount = await Subscription.countDocuments({
-    subscriber: user._id,
-  });
+  const subscribersCount = await Subscription.countDocuments({ channel: user._id });
+  const channelSubscribedToCount = await Subscription.countDocuments({ subscriber: user._id });
 
-  // Check if the logged-in user is subscribed to this channel
-  const isSubscribed = await Subscription.exists({
-    channel: user._id,
-    subscriber: req.user._id,
-  });
-
-  res.status(200).json({
-    user,
-    subscribersCount,
-    channelSubscribedToCount,
-    isSubscribed: !!isSubscribed, // Convert to boolean
-  });
+  res.status(200).json(
+    new ApiResponse(200, {
+      user,
+      subscribersCount,
+      channelSubscribedToCount,
+    })
+  );
 });
