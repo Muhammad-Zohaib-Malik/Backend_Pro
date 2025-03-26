@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const subcriptionSchema = new Schema(
   {
-    subcriber: { //one who is subcribing
+    subscriber: { //one who is subcribing
       type: Schema.Types.ObjectId,
       ref: "User",
     },
@@ -14,4 +14,4 @@ const subcriptionSchema = new Schema(
   { timestamps: true }
 );
 
-export const Video = mongoose.model("Subcription", subcriptionSchema);
+export const Subscription = mongoose.model("Subscription", subcriptionSchema);
